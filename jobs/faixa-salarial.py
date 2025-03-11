@@ -1,6 +1,5 @@
 # Pipeline de Pré-Processamento, Validação Cruzada e Otimização em Machine Learning
 
-# Imports
 from pyspark.sql import SparkSession
 from pyspark.ml import Pipeline
 from pyspark.ml.feature import VectorAssembler, StringIndexer, OneHotEncoder
@@ -36,19 +35,12 @@ encoders = [OneHotEncoder(inputCol=column+"_index", outputCol=column+"_vec") for
 # Cria um assembler para combinar todas as colunas de recursos em um único vetor de características
 assembler = VectorAssembler(inputCols=[c + "_vec" for c in categorical_columns] + ["age", "fnlwgt", "education_num", "capital_gain", "capital_loss", "hours_per_week"], outputCol="features")
 
-# Cria um indexer para a coluna target, transformando-a em rótulos numéricos
+# Cria um indexer para a coluna target, transformando-a em rótulos numéricos (ela esta com o simbolo de k no dataset)
 labelIndexer = StringIndexer(inputCol="income", outputCol="label")
-
-# Define o pipeline com todas as etapas de processamento
 pipeline = Pipeline(stages=indexers + encoders + [assembler, labelIndexer])
-
-# Divide o dataframe em conjuntos de treinamento e teste antes de aplicar o pipeline
 dados_treino, dados_teste = df_sil.randomSplit([0.7, 0.3], seed=42)
-
-# Ajusta o pipeline apenas ao conjunto de dados de treino
 pipelineModel = pipeline.fit(dados_treino)
 
-# Aplica as transformações aos dados de treino e teste
 dados_treino_transformado = pipelineModel.transform(dados_treino)
 dados_teste_transformado = pipelineModel.transform(dados_teste)
 
@@ -78,15 +70,12 @@ modelo_sil_cv_predictions = modelo_sil_cv.transform(dados_teste_transformado)
 # Avalia o desempenho do modelo no conjunto de teste usando a métrica AUC
 auc = sil_evaluator.evaluate(modelo_sil_cv_predictions)
 
-# Criando um DataFrame com a métrica AUC (Vamos salvar no HDFS no formato CSV)
+# Criando um DataFrame com a métrica AUC
 from pyspark.sql import Row
 modelo_sil_cv_auc_df = spark.createDataFrame([Row(auc=auc)])
-
-# Salvando no HDFS
 modelo_sil_cv.write().overwrite().save("hdfs:///opt/spark/data/modelo")
 modelo_sil_cv_auc_df.write.csv("hdfs:///opt/spark/data/auc", mode="overwrite")
 
-# Fim
 
 
 

@@ -18,3 +18,6 @@ Pipeline de Pré-Processamento, Validação Cruzada e Otimização em Machine Le
 `docker exec sil-spark-master-yarn hdfs dfs -ls /opt/spark/data/auc`
 
 `docker exec sil-spark-master-yarn hdfs dfs -cat nome-do-arquivo`
+
+###  Performance de 90% de precisão usando a otimização de Hiperparâmetros
+![Performance do modelo](./imagens/performance.png)
